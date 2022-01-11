@@ -86,21 +86,20 @@ exports.initiate = async (request, response, next) => {
                 if (!nextStepName)
                     return response.status(406).send({error: "Invalid step name"});
 
-                let currentStep = lastBid?.step || 0;
-                currentStep++;
-                if (currentStep > 8)
-                    currentStep = 1;
+                let nextStep = lastBid?.step || 0;
+                nextStep++;
+                if (nextStep > 8)
+                    nextStep = 1;
 
-                const stepAmount = stepsService.getStepAmount(currentStep, balance);
+                const stepAmount = stepsService.getStepAmount(nextStep, balance);
 
                 if (bidDetails.next === lastBid?.stage)
                     return response.status(406).send({error: "Please wait until next step"});
 
-                // TODO: bid for next step
-                // TODO: update prev bid win/lose and pnl in db
+                bidService.bidNow({authToken, nextStep: nextBidAltName, stepAmount, stage: bidDetails.next});
 
-                console.log('nextStepName', nextStepName,'nextBidAltName',nextBidAltName, 'currentStep', currentStep, 'stepAmount', stepAmount)
-                console.log('bidDetails', bidDetails)
+                console.log('nextStepName', nextStepName, 'nextBidAltName', nextBidAltName, 'nextStep', nextStep, 'stepAmount', stepAmount)
+                console.log('bidDetails', bidDetails);
 
             }).catch(error => console.error('Error', error));
     } catch (err) {
