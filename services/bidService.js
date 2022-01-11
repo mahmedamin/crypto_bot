@@ -1,0 +1,25 @@
+const fetch = require('node-fetch');
+
+exports.previousRecord = (auth_token) => {
+    return fetch("https://www.91fp.cc/api/stageprev?pan_id=2", {
+        "headers": {
+            "accept": "*/*",
+            "accept-language": "en-US,en;q=0.9",
+            "authorization": auth_token,
+            "sec-ch-ua": "\" Not A;Brand\";v=\"99\", \"Chromium\";v=\"96\", \"Google Chrome\";v=\"96\"",
+            "sec-ch-ua-mobile": "?0",
+            "sec-ch-ua-platform": "\"macOS\"",
+            "sec-fetch-dest": "empty",
+            "sec-fetch-mode": "cors",
+            "sec-fetch-site": "same-origin",
+            "x-requested-with": "XMLHttpRequest",
+            "cookie": "_ga=GA1.2.901629022.1641217469; _gid=GA1.2.1542394067.1641217469; AWSALB=GpCxthHcnTY6JHdODCZUSH6JdWm5aZI/6fB8Z80P/TcuxMHVnuBgo7W1igwQssOscL7Q52EmS3+yIkDff5VN+z9RY5QmWMlSNLB4wsf9oBHuMoricOyfn6KGH9WT; AWSALBTG=INkIv+UAOsqxT5j/BCeABLNML08/INXGs8r6GDLaOc0qKKDlil/mUPuS/zw6dWnoszT0vlRpwuA1eIIwB+Hp9/6zf4aTHrfrGzVj/hOzjYJ75W8mSS0nqBPcgGKrL3jzACjGD5lV9Ej4PtYGDdICEmx2xmTVB49uSpznoc0NZvJZ5CSN/YQ=; angela_session=eyJpdiI6InBESElNbWFXWEtNNktDbmVmRkFneUE9PSIsInZhbHVlIjoidDVPXC9yMHNZZnZuUE53Q1BpRFFUMFdcL2M3NXJIQXlGNmlkZ0F6a1pnNEdPcGY5WDIrWGR3Nm1IRUxrVjdTVUJuIiwibWFjIjoiZDNjZWMzNTllNWI1ZmFkNDI5ZGFjNWQ4MzhiMGRhM2YwYzc1Yzg4YzJhMjUyMjhmZjllMjc5MzQxMTliODEyMiJ9; cf_ob_info=502:6ca1535cfcc97aa4:MCT; cf_use_ob=0",
+            "Referer": "https://www.91fp.cc/mobile/black/dataMap.html?tradeId=2&legal_id=3&currency_id=1&symbol=BTC/USDT",
+            "Referrer-Policy": "strict-origin-when-cross-origin"
+        },
+        "body": null,
+        "method": "GET"
+    }).then(r => r.json())
+}
+
+exports.getUserBalance = (response) => response?.message?.micro_wallet?.balance[0]?.change_balance;

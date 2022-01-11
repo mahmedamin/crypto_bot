@@ -1,0 +1,13 @@
+{
+  "name": "socket-chat-example",
+  "version": "0.0.1",
+  "description": "pTracking socket.io client",
+  "dependencies": {
+    "axios": "^0.21.4",
+    "express": "^4.17.1",
+    "mysql2": "^2.3.3",
+    "node-fetch": "^2.6.6",
+    "nodemon": "^2.0.12",
+    "sequelize": "^6.12.5"
+  }
+}
