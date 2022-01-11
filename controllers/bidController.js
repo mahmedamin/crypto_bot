@@ -49,14 +49,14 @@ exports.initiate = async (request, response, next) => {
         if (!balance)
             return response.status(406).send({error: "Balance not found!"});
 
-        previousBid = null;
+        lastBid = null;
 
         try {
             if (!bidTypes) {
                 bidTypes = await BidType.findAll();
             }
 
-            previousBid = await Bid.findOne({
+            lastBid = await Bid.findOne({
                 include: BidType,
                 where: {
                     user_id: userId,
@@ -77,7 +77,7 @@ exports.initiate = async (request, response, next) => {
                     return response.status(406).send({error: "Previous bid api response failure!"});
 
                 // Condition to choose previous bid (if user hasn't apply for any bid before, it will consider previous bid from api service)
-                const prevBidName = previousBid?.BidType?.name ||
+                const prevBidName = lastBid?.BidType?.name ||
                     bidTypes.find(d => d.name_alt === bidDetails.jieguo[0]).get('name');
 
                 nextStepName = prevBidName === 'big' ? 'small' : prevBidName === 'small' ? 'big' : null;
@@ -86,14 +86,14 @@ exports.initiate = async (request, response, next) => {
                 if (!nextStepName)
                     return response.status(406).send({error: "Invalid step name"});
 
-                let currentStep = previousBid?.step || 0;
+                let currentStep = lastBid?.step || 0;
                 currentStep++;
                 if (currentStep > 8)
                     currentStep = 1;
 
                 const stepAmount = stepsService.getStepAmount(currentStep, balance);
 
-                if (bidDetails.next === previousBid.stage_id)
+                if (bidDetails.next === lastBid?.stage)
                     return response.status(406).send({error: "Please wait until next step"});
 
                 // TODO: bid for next step
