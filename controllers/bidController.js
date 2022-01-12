@@ -2,8 +2,7 @@ const sequelize = require('../utills/sequelize'),
     fetch = require('node-fetch'),
     authService = require('../services/authService'),
     userService = require('../services/userService'),
-    bidService = require('../services/bidService'),
-    stepsService = require('../services/stepsService');
+    bidService = require('../services/bidService');
 
 // Models
 const User = require('../models/User'),
@@ -14,6 +13,7 @@ let bidTypes = null;
 
 exports.initiate = async (request, response, next) => {
     const userId = request.params.user;
+    let responseError = null;
     if (!userId)
         return response.status(403).send({error: "Access denied!"});
     try {
@@ -41,8 +41,8 @@ exports.initiate = async (request, response, next) => {
             balance = parseFloat(authResponse.balance);
         else {
             await userService.getUserInfo(authToken)
-                .then(response => {
-                    balance = parseFloat(userService.getUserBalance(response));
+                .then(r => {
+                    balance = parseFloat(userService.getUserBalance(r));
                 });
         }
 
@@ -70,41 +70,66 @@ exports.initiate = async (request, response, next) => {
             return response.status(406).send({error: err.message});
         }
 
-        bidService.previousRecord()
+        await bidService.previousRecord()
             .then(r => {
                 const bidDetails = r?.message?.list;
                 if (!bidDetails)
-                    return response.status(406).send({error: "Previous bid api response failure!"});
+                    return {error: "Previous bid api response failure!"};
+
+                if (bidDetails.next === lastBid?.stage)
+                    return {error: "Please wait until next step"};
 
                 // Condition to choose previous bid (if user hasn't apply for any bid before, it will consider previous bid from api service)
                 const prevBidName = lastBid?.BidType?.name ||
                     bidTypes.find(d => d.name_alt === bidDetails.jieguo[0]).get('name');
 
-                nextStepName = prevBidName === 'big' ? 'small' : prevBidName === 'small' ? 'big' : null;
-                const nextBidAltName = bidTypes.find(d => d.name === nextStepName).get('name_alt');
+                // TODO: last bid type and current bid type
 
-                if (!nextStepName)
-                    return response.status(406).send({error: "Invalid step name"});
+                currentStepName = prevBidName === 'big' ? 'small' : prevBidName === 'small' ? 'big' : null;
 
-                let nextStep = lastBid?.step || 0;
-                nextStep++;
-                if (nextStep > 8)
-                    nextStep = 1;
+                if (!currentStepName)
+                    return {error: "Invalid step name"};
 
-                const stepAmount = stepsService.getStepAmount(nextStep, balance);
+                const bidType = bidTypes.find(d => d.name === currentStepName),
+                    lastBidWon = (lastBid?.name === prevBidName);
+                console.log('lastBid?.name', lastBid?.name, 'prevBidName', prevBidName)
 
-                if (bidDetails.next === lastBid?.stage)
-                    return response.status(406).send({error: "Please wait until next step"});
+                if (lastBid) lastBid.update({win: lastBidWon});
 
-                bidService.bidNow({authToken, nextStep: nextBidAltName, stepAmount, stage: bidDetails.next});
+                let nextStepNumber = 1;
+                if (!lastBidWon) {
+                    let nextStepNumber = lastBid?.step || 0;
+                    nextStepNumber++;
+                    if (nextStepNumber > 8)
+                        nextStepNumber = 1;
+                }
 
-                console.log('nextStepName', nextStepName, 'nextBidAltName', nextBidAltName, 'nextStep', nextStep, 'stepAmount', stepAmount)
-                console.log('bidDetails', bidDetails);
+                bidService.bidNow({
+                    user: {
+                        id: user.id,
+                        authToken,
+                        balance
+                    },
+                    step: {
+                        stage: bidDetails.next,
+                        stepNumber: nextStepNumber,
+                    },
+                    bidType
+                });
+            })
+            .then(r => {
+                if (r && r.error)
+                    responseError = r;
+            })
+            .catch(error => console.error('Error', error));
 
-            }).catch(error => console.error('Error', error));
+
     } catch (err) {
         next(err);
     }
+
+    if (responseError)
+        return response.status(406).send(responseError);
 
     response.send("initiated the transaction of ..");
 };

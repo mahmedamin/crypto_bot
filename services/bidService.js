@@ -1,5 +1,6 @@
 const fetch = require('node-fetch'),
-    Bid = require('../models/Bid')
+    Bid = require('../models/Bid'),
+    stepsService = require('./stepsService');
 
 exports.previousRecord = (auth_token) => {
     return fetch("https://www.91fp.cc/api/stageprev?pan_id=2", {
@@ -24,12 +25,34 @@ exports.previousRecord = (auth_token) => {
 }
 
 exports.bidNow = async (params) => {
-    const {authToken, nextStep, stepAmount, stage} = params;
+    const {step, user, bidType} = params;
+    const stepAmount = stepsService.getStepAmount(step.stepNumber, user.balance);
+
+    if (!stepAmount)
+        return false;
+
+    console.log('--o',
+        'user.authToken', user.authToken,
+        'stepAmount',stepAmount,
+    );
+
+    // ******************** TEMP ****************************
+    Bid.create({
+        user_id: user.id,
+        step: step.stepNumber,
+        bid_type_id: bidType.id,
+        amount: stepAmount,
+        stage: step.stage,
+        currentBalance: user.balance
+    }).catch(err => console.log('err', err));
+    return '';
+    // ******************** TEMP ****************************
+
     await fetch("https://www.91fp.cc/api/stagexz", {
         "headers": {
             "accept": "*/*",
             "accept-language": "en-US,en;q=0.9",
-            "authorization": authToken,
+            "authorization": user.authToken,
             "content-type": "application/x-www-form-urlencoded; charset=UTF-8",
             "sec-ch-ua": "\" Not A;Brand\";v=\"99\", \"Chromium\";v=\"96\", \"Google Chrome\";v=\"96\"",
             "sec-ch-ua-mobile": "?0",
@@ -42,21 +65,19 @@ exports.bidNow = async (params) => {
             "Referer": `https://www.91fp.cc/mobile/black/dataMap.html?tradeId=2&legal_id=3&currency_id=1&symbol=BTC/USDT`,
             "Referrer-Policy": "strict-origin-when-cross-origin"
         },
-        "body": `pan_id=2&wf_id=1&wf_name=${nextStep}&xzmoney=${stepAmount}&stages=${stage}`,
+        "body": `pan_id=2&wf_id=1&wf_name=${bidType.name_alt}&xzmoney=${stepAmount}&stages=${step.stage}`,
         "method": "POST"
     }).then(r => r.json())
         .then(response => {
             if (response.type === 'ok') {
                 Bid.create({
-                    user_id: "",
-                    step: "",
-                    bid_type_id:'',
+                    user_id: user.id,
+                    step: step.stepNumber,
+                    bid_type_id: bidType.id,
                     amount: stepAmount,
-                    stage,
+                    stage: step.stage,
+                    currentBalance: user.balance
                 }).catch(err => console.log('err', err));
-
-                // TODO: bid for next step
-                // TODO: update prev bid win/lose and pnl in db
             }
         }).catch(error => console.error('Error', error));
 }

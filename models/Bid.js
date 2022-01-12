@@ -17,7 +17,6 @@ Bid.init({
     amount: DataTypes.DECIMAL(10, 2),
     stage: DataTypes.INTEGER,
     win: DataTypes.BOOLEAN,
-    pnl: DataTypes.DECIMAL(10, 2),
 }, {
     sequelize,
     timestamps: true,

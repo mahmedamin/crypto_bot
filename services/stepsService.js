@@ -14,7 +14,7 @@ const stepPercentage = _8stepsPercentage;
 exports.getStepAmount = (requiredStep, balance) => {
     let stepTotal = 0,
         currentStep = 0,
-        requiredStepAmount = 112233;
+        requiredStepAmount = 0;
     stepPercentage.forEach(percentage => {
         currentStep++;
         const currentStepAmount = parseFloat(balance * (percentage / 100)),

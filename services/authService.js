@@ -11,6 +11,7 @@ exports.validateAuth = async (user) => {
                 return login(user)
             }
 
+            console.warn('Already logged in')
             return {
                 success: true,
                 message: 'Already authenticated',
@@ -22,6 +23,7 @@ exports.validateAuth = async (user) => {
                 output = response;
             else {
                 // Login response
+                console.warn('login successful')
                 if (response.type !== 'ok') {
                     output = {
                         success: false,
