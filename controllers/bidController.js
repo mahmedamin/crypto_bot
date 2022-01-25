@@ -30,6 +30,8 @@ exports.initiate = async (request, response, next) => {
 
         const authResponse = await authService.validateAuth(user);
 
+        return console.log('authResponse',authResponse)
+
         if (!authResponse || !authResponse.success) {
             return response.status(403).send({error: authResponse?.message});
         }
@@ -76,32 +78,39 @@ exports.initiate = async (request, response, next) => {
                 if (!bidDetails)
                     return {error: "Previous bid api response failure!"};
 
+                // return console.log('lastBidType',bidTypes.find(d => d.name_alt === bidDetails.jieguo[0]).name)
+
                 if (bidDetails.next === lastBid?.stage)
                     return {error: "Please wait until next step"};
 
+                const lastBidType = bidTypes.find(d => d.name_alt === bidDetails.jieguo[0]); // Last bid type from API
+
                 // Condition to choose previous bid (if user hasn't apply for any bid before, it will consider previous bid from api service)
-                const prevBidName = lastBid?.BidType?.name ||
-                    bidTypes.find(d => d.name_alt === bidDetails.jieguo[0]).get('name');
+                const prevStepName = lastBid?.BidType?.name || lastBidType.get('name');
 
-                // TODO: last bid type and current bid type
-
-                currentStepName = prevBidName === 'big' ? 'small' : prevBidName === 'small' ? 'big' : null;
+                currentStepName = prevStepName === 'big' ? 'small' : prevStepName === 'small' ? 'big' : null;
 
                 if (!currentStepName)
                     return {error: "Invalid step name"};
 
-                const bidType = bidTypes.find(d => d.name === currentStepName),
-                    lastBidWon = (lastBid?.name === prevBidName);
-                console.log('lastBid?.name', lastBid?.name, 'prevBidName', prevBidName)
+                const currentBidType = bidTypes.find(d => d.name === currentStepName);
 
-                if (lastBid) lastBid.update({win: lastBidWon});
+                const lastBidWon = (lastBid.BidType?.name === lastBidType.get('name'));
+
+                Bid.update({
+                    win: lastBidWon
+                },{
+                    where: {
+                        user_id: userId,
+                        stage: bidDetails.prevstage,
+                    }
+                });
 
                 let nextStepNumber = 1;
                 if (!lastBidWon) {
-                    let nextStepNumber = lastBid?.step || 0;
-                    nextStepNumber++;
-                    if (nextStepNumber > 8)
-                        nextStepNumber = 1;
+                    nextStepNumber = lastBid?.step || 0;
+                    nextStepNumber = parseInt(nextStepNumber) + 1;
+                    if (nextStepNumber > 8) nextStepNumber = 1;
                 }
 
                 bidService.bidNow({
@@ -114,7 +123,7 @@ exports.initiate = async (request, response, next) => {
                         stage: bidDetails.next,
                         stepNumber: nextStepNumber,
                     },
-                    bidType
+                    bidType: currentBidType
                 });
             })
             .then(r => {

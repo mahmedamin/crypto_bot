@@ -26,7 +26,22 @@ exports.previousRecord = (auth_token) => {
 
 exports.bidNow = async (params) => {
     const {step, user, bidType} = params;
-    const stepAmount = stepsService.getStepAmount(step.stepNumber, user.balance);
+
+    lastBidForStepOne = await Bid.findOne({
+        attributes: ['id', 'currentBalance'],
+        where: {
+            user_id: userId,
+            step: 1
+        },
+        order: [
+            ['id', 'DESC'],
+        ]
+    });
+
+    let balanceForStep = lastBidForStepOne.currentBalance || user.balance;
+    // TODO: working here to update balanceForStep affter win, we might need to pass lastBidWon parameter to determine
+
+    const stepAmount = stepsService.getStepAmount(step.stepNumber, balanceForStep);
 
     if (!stepAmount)
         return false;
@@ -34,6 +49,7 @@ exports.bidNow = async (params) => {
     console.log('--o',
         'user.authToken', user.authToken,
         'stepAmount',stepAmount,
+        bidType.get('name')
     );
 
     // ******************** TEMP ****************************
