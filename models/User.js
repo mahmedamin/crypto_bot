@@ -11,8 +11,10 @@ User.init({
         primaryKey: true
     },
     name: DataTypes.STRING,
+    phone: DataTypes.STRING,
     plain_password: DataTypes.STRING,
     auth_token: DataTypes.STRING,
+    access_token: DataTypes.STRING,
     status: DataTypes.BOOLEAN
 }, {
     sequelize,

@@ -1,6 +1,4 @@
-const sequelize = require('../utills/sequelize'),
-    fetch = require('node-fetch'),
-    authService = require('../services/authService'),
+const authService = require('../services/authService'),
     userService = require('../services/userService'),
     bidService = require('../services/bidService');
 
@@ -18,7 +16,7 @@ exports.initiate = async (request, response, next) => {
         return response.status(403).send({error: "Access denied!"});
     try {
         const user = await User.findOne({
-            attributes: ['id', 'email', 'plain_password', 'auth_token'],
+            attributes: ['id', 'phone', 'plain_password', 'auth_token', 'access_token'],
             where: {
                 id: userId,
                 status: 1
@@ -30,23 +28,19 @@ exports.initiate = async (request, response, next) => {
 
         const authResponse = await authService.validateAuth(user);
 
-        return console.log('authResponse',authResponse)
-
         if (!authResponse || !authResponse.success) {
             return response.status(403).send({error: authResponse?.message});
         }
 
-        const authToken = authResponse.token;
-        let balance = null;
+        const authToken = authResponse.token,
+            accessToken = authResponse.accessToken
+        let balance = authResponse.balance;
 
-        if (authResponse.balance)
-            balance = parseFloat(authResponse.balance);
-        else {
-            await userService.getUserInfo(authToken)
+        if (!authResponse.balance)
+            await userService.getUserInfo(authToken, accessToken)
                 .then(r => {
-                    balance = parseFloat(userService.getUserBalance(r));
+                    balance = userService.getUserBalance(r);
                 });
-        }
 
         if (!balance)
             return response.status(406).send({error: "Balance not found!"});
@@ -67,6 +61,7 @@ exports.initiate = async (request, response, next) => {
                     ['id', 'DESC'],
                 ]
             });
+
         } catch (err) {
             console.log('err', err)
             return response.status(406).send({error: err.message});
@@ -74,19 +69,19 @@ exports.initiate = async (request, response, next) => {
 
         await bidService.previousRecord()
             .then(r => {
-                const bidDetails = r?.message?.list;
-                if (!bidDetails)
+                const bidDetails = r?.data?.prior_issue,
+                    nextBidStage = r.data.cur_issue.issueno;
+                if (!bidDetails || !r?.data?.cur_issue)
                     return {error: "Previous bid api response failure!"};
 
-                // return console.log('lastBidType',bidTypes.find(d => d.name_alt === bidDetails.jieguo[0]).name)
-
-                if (bidDetails.next === lastBid?.stage)
+                if (nextBidStage === lastBid?.stage)
                     return {error: "Please wait until next step"};
 
-                const lastBidType = bidTypes.find(d => d.name_alt === bidDetails.jieguo[0]); // Last bid type from API
+                let lastBidTypeName = (bidDetails.rule.split(',')[0])?.toLowerCase();
+                lastBidTypeName = lastBidTypeName === 'b' ? 'big' : lastBidTypeName === 's' ? 'small' : null;
 
                 // Condition to choose previous bid (if user hasn't apply for any bid before, it will consider previous bid from api service)
-                const prevStepName = lastBid?.BidType?.name || lastBidType.get('name');
+                const prevStepName = lastBid?.BidType?.name || lastBidTypeName;
 
                 currentStepName = prevStepName === 'big' ? 'small' : prevStepName === 'small' ? 'big' : null;
 
@@ -95,32 +90,35 @@ exports.initiate = async (request, response, next) => {
 
                 const currentBidType = bidTypes.find(d => d.name === currentStepName);
 
-                const lastBidWon = (lastBid.BidType?.name === lastBidType.get('name'));
-
-                Bid.update({
-                    win: lastBidWon
-                },{
-                    where: {
-                        user_id: userId,
-                        stage: bidDetails.prevstage,
-                    }
-                });
+                let lastBidWon = null;
+                if (lastBid) {
+                    lastBidWon = (lastBid?.BidType?.name === lastBidTypeName);
+                    Bid.update({
+                        win: lastBidWon
+                    }, {
+                        where: {
+                            user_id: userId,
+                            stage: bidDetails.issueno,
+                        }
+                    });
+                }
 
                 let nextStepNumber = 1;
                 if (!lastBidWon) {
                     nextStepNumber = lastBid?.step || 0;
                     nextStepNumber = parseInt(nextStepNumber) + 1;
-                    if (nextStepNumber > 8) nextStepNumber = 1;
+                    if (nextStepNumber > 7) nextStepNumber = 1;
                 }
 
                 bidService.bidNow({
                     user: {
                         id: user.id,
                         authToken,
+                        accessToken,
                         balance
                     },
                     step: {
-                        stage: bidDetails.next,
+                        stage: nextBidStage,
                         stepNumber: nextStepNumber,
                     },
                     bidType: currentBidType
