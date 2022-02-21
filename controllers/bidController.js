@@ -107,7 +107,7 @@ exports.initiate = async (request, response, next) => {
                 if (!lastBidWon) {
                     nextStepNumber = lastBid?.step || 0;
                     nextStepNumber = parseInt(nextStepNumber) + 1;
-                    if (nextStepNumber > 7) nextStepNumber = 1;
+                    if (nextStepNumber > 12) nextStepNumber = 1;
                 }
 
                 bidService.bidNow({
