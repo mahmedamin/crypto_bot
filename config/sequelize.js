@@ -5,7 +5,7 @@ const {env} = process;
 const sequelize = new Sequelize(env.DB_DATABASE, env.DB_USERNAME, env.DB_PASSWORD, {
     dialect: env.DB_DIALECT,
     host: env.DB_HOST,
-    logging: env.DB_LOGGING,
+    logging: env.DB_LOGGING === 'true',
     timezone: '+05:00'
 });
 
