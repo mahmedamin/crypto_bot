@@ -1,5 +1,12 @@
+/*
+#1 "Big"
+#2 "Big"
+#3* "Small"
+*/
+
+
 const {Model, DataTypes} = require('sequelize');
-const sequelize = require('../utills/sequelize')
+const sequelize = require('../config/sequelize')
 
 class User extends Model {
 }

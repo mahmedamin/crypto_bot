@@ -1,5 +1,5 @@
 const {Model, DataTypes} = require('sequelize');
-const sequelize = require('../utills/sequelize')
+const sequelize = require('../config/sequelize')
 
 class BidType extends Model {
 }

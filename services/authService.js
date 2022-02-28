@@ -1,4 +1,4 @@
-const sequelize = require('../utills/sequelize'),
+const sequelize = require('../config/sequelize'),
     fetch = require('node-fetch'),
     userService = require('./userService');
 

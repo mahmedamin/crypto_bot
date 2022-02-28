@@ -36,7 +36,7 @@ exports.initiate = async (request, response, next) => {
             accessToken = authResponse.accessToken
         let balance = authResponse.balance;
 
-        if (!authResponse.balance)
+        if (!balance)
             await userService.getUserInfo(authToken, accessToken)
                 .then(r => {
                     balance = userService.getUserBalance(r);
@@ -45,26 +45,33 @@ exports.initiate = async (request, response, next) => {
         if (!balance)
             return response.status(406).send({error: "Balance not found!"});
 
-        lastBid = null;
+        let last2Bids = null,
+            lastBid = null,
+            secondLastBid = null;
 
         try {
             if (!bidTypes) {
                 bidTypes = await BidType.findAll();
             }
 
-            lastBid = await Bid.findOne({
+            last2Bids = await Bid.findAll({
                 include: BidType,
                 where: {
                     user_id: userId,
                 },
                 order: [
                     ['id', 'DESC'],
-                ]
+                ],
+                limit: 2
             });
-
         } catch (err) {
             console.log('err', err)
             return response.status(406).send({error: err.message});
+        }
+
+        if (last2Bids) {
+            lastBid = last2Bids[0];
+            secondLastBid = last2Bids[1];
         }
 
         await bidService.previousRecord()
@@ -77,13 +84,30 @@ exports.initiate = async (request, response, next) => {
                 if (nextBidStage === lastBid?.stage)
                     return {error: "Please wait until next step"};
 
+                if (lastBid?.stage && (bidDetails.issueno !== lastBid?.stage)) {
+                    // if (secondLastBid.win) {
+                    //     bidDetails.issueno = lastBid.stage;
+                    // } else {
+                    return {error: "Previous step is missing"};
+                    // }
+                }
+
                 let lastBidTypeName = (bidDetails.rule.split(',')[0])?.toLowerCase();
                 lastBidTypeName = lastBidTypeName === 'b' ? 'big' : lastBidTypeName === 's' ? 'small' : null;
 
                 // Condition to choose previous bid (if user hasn't apply for any bid before, it will consider previous bid from api service)
                 const prevStepName = lastBid?.BidType?.name || lastBidTypeName;
+                currentStepName = bidService.getOppositeBidName(prevStepName);
 
-                currentStepName = prevStepName === 'big' ? 'small' : prevStepName === 'small' ? 'big' : null;
+                if (lastBid && secondLastBid) {
+                    if (secondLastBid.BidType.name === lastBid?.BidType?.name) {
+                        currentStepName = bidService.getOppositeBidName(prevStepName);
+                    } else {
+                        currentStepName = prevStepName;
+                    }
+                } else {
+                    currentStepName = bidService.getOppositeBidName(prevStepName);
+                }
 
                 if (!currentStepName)
                     return {error: "Invalid step name"};
@@ -107,7 +131,9 @@ exports.initiate = async (request, response, next) => {
                 if (!lastBidWon) {
                     nextStepNumber = lastBid?.step || 0;
                     nextStepNumber = parseInt(nextStepNumber) + 1;
-                    if (nextStepNumber > 12) nextStepNumber = 1;
+                    if (nextStepNumber > 9) {
+                        //
+                    }
                 }
 
                 bidService.bidNow({
