@@ -16,7 +16,7 @@ exports.initiate = async (request, response, next) => {
         return response.status(403).send({error: "Access denied!"});
     try {
         const user = await User.findOne({
-            attributes: ['id', 'phone', 'plain_password', 'auth_token', 'access_token'],
+            attributes: ['id', 'phone', 'plain_password', 'auth_token', 'access_token', 'is_playing'],
             where: {
                 id: userId,
                 status: 1
@@ -118,7 +118,8 @@ exports.initiate = async (request, response, next) => {
                 if (lastBid) {
                     lastBidWon = (lastBid?.BidType?.name === lastBidTypeName);
                     Bid.update({
-                        win: lastBidWon
+                        win: lastBidWon,
+                        balance_after_result: balance
                     }, {
                         where: {
                             user_id: userId,
@@ -126,6 +127,9 @@ exports.initiate = async (request, response, next) => {
                         }
                     });
                 }
+
+                if (lastBidWon && !user.is_playing)
+                    return {error: "Not playing now"};
 
                 let nextStepNumber = 1;
                 if (!lastBidWon) {

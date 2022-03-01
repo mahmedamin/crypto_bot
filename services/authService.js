@@ -36,7 +36,8 @@ exports.validateAuth = async (user) => {
                     authToken = response.data.token;
                     accessToken = response.data.access_token;
 
-                    user.update({auth_token: authToken, access_token: accessToken});
+                    // temporary disabling update to keep login everytime to fetch updated balance
+                    // user.update({auth_token: authToken, access_token: accessToken});
 
                     output = {
                         success: true,

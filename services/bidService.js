@@ -27,7 +27,7 @@ exports.bidNow = async (params) => {
     const {step, user, bidType} = params;
 
     lastBidForStepOne = await Bid.findOne({
-        attributes: ['id', 'currentBalance'],
+        attributes: ['id', 'initial_balance'],
         where: {
             user_id: user.id,
             step: 1
@@ -37,7 +37,8 @@ exports.bidNow = async (params) => {
         ]
     });
 
-    let balanceForStep = lastBidForStepOne?.currentBalance || user.balance;
+
+    let balanceForStep = step.stepNumber === 1 ? user.balance : (lastBidForStepOne?.initial_balance || 0);
 
     const stepAmount = stepsService.getStepAmount(step.stepNumber, balanceForStep);
 
@@ -51,7 +52,7 @@ exports.bidNow = async (params) => {
     //     bid_type_id: bidType.id,
     //     amount: stepAmount,
     //     stage: step.stage,
-    //     currentBalance: user.balance
+    //     initial_balance: user.balance
     // }).catch(err => console.log('err', err));
     // return '';
     // ******************** TEMP ****************************
@@ -84,7 +85,7 @@ exports.bidNow = async (params) => {
                     bid_type_id: bidType.id,
                     amount: stepAmount,
                     stage: step.stage,
-                    currentBalance: user.balance
+                    initial_balance: user.balance
                 }).catch(err => console.log('err', err));
             }
         }).catch(error => console.error('Error', error));

@@ -22,6 +22,7 @@ User.init({
     plain_password: DataTypes.STRING,
     auth_token: DataTypes.STRING,
     access_token: DataTypes.STRING,
+    is_playing: DataTypes.BOOLEAN,
     status: DataTypes.BOOLEAN
 }, {
     sequelize,

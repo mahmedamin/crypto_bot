@@ -15,7 +15,8 @@ Bid.init({
     step: DataTypes.INTEGER,
     bid_type_id: DataTypes.INTEGER,
     amount: DataTypes.DECIMAL,
-    currentBalance: DataTypes.DECIMAL,
+    initial_balance: DataTypes.DECIMAL,
+    balance_after_result: DataTypes.DECIMAL,
     stage: DataTypes.INTEGER,
     win: DataTypes.BOOLEAN,
 }, {
