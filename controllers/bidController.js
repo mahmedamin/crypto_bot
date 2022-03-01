@@ -137,11 +137,11 @@ exports.initiate = async (request, response, next) => {
                     return {error: "Not playing now"};
 
                 let nextStepNumber = 1;
-                if (!lastBidWon) {
+                if (!lastBidWon && !lastBid?.transaction_closed) {
                     nextStepNumber = lastBid?.step || 0;
                     nextStepNumber = parseInt(nextStepNumber) + 1;
                     if (nextStepNumber > 9) {
-                        //
+                        nextStepNumber = 1;
                     }
                 }
 
