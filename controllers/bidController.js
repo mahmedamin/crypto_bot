@@ -86,7 +86,7 @@ exports.initiate = async (request, response, next) => {
                 if (nextBidStage === lastBid?.stage)
                     return {error: "Please wait until next step"};
 
-                if (lastBid?.stage && (bidDetails.issueno !== lastBid?.stage)) {
+                if (lastBid?.stage && !lastBid.transaction_closed && (bidDetails.issueno !== lastBid?.stage)) {
                     // if (secondLastBid.win) {
                     //     bidDetails.issueno = lastBid.stage;
                     // } else {
@@ -119,15 +119,18 @@ exports.initiate = async (request, response, next) => {
                 let lastBidWon = null;
                 if (lastBid) {
                     lastBidWon = (lastBid?.BidType?.name === lastBidTypeName);
-                    Bid.update({
-                        win: lastBidWon,
-                        balance_after_result: balance
-                    }, {
-                        where: {
-                            user_id: userId,
-                            stage: bidDetails.issueno,
-                        }
-                    });
+
+                    if (!lastBid.transaction_closed) {
+                        Bid.update({
+                            win: lastBidWon,
+                            balance_after_result: balance
+                        }, {
+                            where: {
+                                user_id: userId,
+                                stage: bidDetails.issueno,
+                            }
+                        });
+                    }
                 }
 
                 if (lastBidWon && !user.is_playing)

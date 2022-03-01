@@ -38,7 +38,7 @@ exports.bidNow = async (params) => {
     });
 
 
-    let balanceForStep = step.stepNumber === 1 ? user.balance : (lastBidForStepOne?.initial_balance || 0);
+    let balanceForStep = step.stepNumber === 1 ? user.balance : (lastBidForStepOne?.initial_balance || user.balance);
 
     const stepAmount = stepsService.getStepAmount(step.stepNumber, balanceForStep);
 

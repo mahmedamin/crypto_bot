@@ -19,6 +19,7 @@ Bid.init({
     balance_after_result: DataTypes.DECIMAL,
     stage: DataTypes.INTEGER,
     win: DataTypes.BOOLEAN,
+    transaction_closed: DataTypes.BOOLEAN,
 }, {
     sequelize,
     timestamps: true,
