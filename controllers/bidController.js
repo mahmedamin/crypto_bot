@@ -81,7 +81,7 @@ exports.initiate = async (request, response, next) => {
                 if (!bidDetails || !r?.data?.cur_issue)
                     return {error: "Previous bid api response failure!"};
 
-                console.log('-stage-', bidDetails.issueno);
+                console.log('-prev stage-', bidDetails.issueno, '-new stage-', nextBidStage);
 
                 if (nextBidStage === lastBid?.stage)
                     return {error: "Please wait until next step"};
