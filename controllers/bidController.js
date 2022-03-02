@@ -141,7 +141,7 @@ exports.initiate = async (request, response, next) => {
                     nextStepNumber = lastBid?.step || 0;
                     nextStepNumber = parseInt(nextStepNumber) + 1;
                     if (nextStepNumber > 9) {
-                        nextStepNumber = 1;
+                        return {error: "Cannot play further"};
                     }
                 }
 
