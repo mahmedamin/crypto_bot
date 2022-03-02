@@ -133,17 +133,17 @@ exports.initiate = async (request, response, next) => {
                     }
                 }
 
-                if (lastBidWon && !user.is_playing)
-                    return {error: "Not playing now"};
-
                 let nextStepNumber = 1;
                 if (!lastBidWon && !lastBid?.transaction_closed) {
                     nextStepNumber = lastBid?.step || 0;
                     nextStepNumber = parseInt(nextStepNumber) + 1;
                     if (nextStepNumber > 9) {
-                        return {error: "Cannot play further"};
+                        return {error: "Lost! Cannot play further"};
                     }
                 }
+
+                if (1 === nextStepNumber && !user.is_playing)
+                    return {error: "Not playing now"};
 
                 bidService.bidNow({
                     user: {
