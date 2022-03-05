@@ -100,15 +100,9 @@ exports.initiate = async (request, response, next) => {
                 // Condition to choose previous bid (if user hasn't apply for any bid before, it will consider previous bid from api service)
                 const prevStepName = lastBid?.BidType?.name || lastBidTypeName;
                 currentStepName = bidService.getOppositeBidName(prevStepName);
-
+                
                 if (lastBid && secondLastBid) {
-                    if (secondLastBid.BidType.name === lastBid?.BidType?.name) {
-                        currentStepName = bidService.getOppositeBidName(prevStepName);
-                    } else {
-                        currentStepName = prevStepName;
-                    }
-                } else {
-                    currentStepName = bidService.getOppositeBidName(prevStepName);
+                    currentStepName = ('small' === secondLastBid.BidType.name && 'small' === lastBid.BidType.name) ? 'big' : 'small';
                 }
 
                 if (!currentStepName)
