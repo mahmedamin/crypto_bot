@@ -100,7 +100,7 @@ exports.initiate = async (request, response, next) => {
                 // Condition to choose previous bid (if user hasn't apply for any bid before, it will consider previous bid from api service)
                 const prevStepName = lastBid?.BidType?.name || lastBidTypeName;
                 currentStepName = bidService.getOppositeBidName(prevStepName);
-                
+
                 if (lastBid && secondLastBid) {
                     currentStepName = ('small' === secondLastBid.BidType.name && 'small' === lastBid.BidType.name) ? 'big' : 'small';
                 }
@@ -128,7 +128,7 @@ exports.initiate = async (request, response, next) => {
                 }
 
                 let nextStepNumber = 1;
-                if (!lastBidWon && !lastBid?.transaction_closed) {
+                if (!lastBidWon) {
                     nextStepNumber = lastBid?.step || 0;
                     nextStepNumber = parseInt(nextStepNumber) + 1;
                     if (nextStepNumber > 9) {
