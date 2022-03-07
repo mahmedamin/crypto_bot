@@ -102,7 +102,11 @@ exports.initiate = async (request, response, next) => {
                 currentStepName = bidService.getOppositeBidName(prevStepName);
 
                 if (lastBid && secondLastBid) {
-                    currentStepName = ('small' === secondLastBid.BidType.name && 'small' === lastBid.BidType.name) ? 'big' : 'small';
+                    if (secondLastBid.BidType.name === lastBid?.BidType?.name) {
+                        currentStepName = bidService.getOppositeBidName(prevStepName);
+                    } else {
+                        currentStepName = prevStepName;
+                    }
                 }
 
                 if (!currentStepName)
