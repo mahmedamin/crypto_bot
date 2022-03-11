@@ -132,7 +132,8 @@ exports.initiate = async (request, response, next) => {
                 }
 
                 let nextStepNumber = 1;
-                if (!lastBidWon) {
+                if (!lastBidWon && !lastBid.transaction_closed) {
+                    // Continuing to next step
                     nextStepNumber = lastBid?.step || 0;
                     nextStepNumber = parseInt(nextStepNumber) + 1;
                     if (nextStepNumber > 9) {
