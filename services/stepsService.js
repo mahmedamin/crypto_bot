@@ -1,13 +1,25 @@
-// const _8stepsPercentage = [
-//     0.3, // Step 1
-//     0.6, // Step 2
-//     1.3, // Step 3
-//     2.8, // Step 4
-//     5.8, // Step 5
-//     12, // Step 6
-//     25, // Step 7
-//     52.19999, // Step 8
-// ];
+const constants = require('../config/constants');
+
+const _7stepsPercentage = [
+    0.6, // Step 1
+    1.2, // Step 2
+    2.6, // Step 3
+    5.6, // Step 4
+    12, // Step 5
+    25, // Step 6
+    53, // Step 7
+];
+
+const _8stepsPercentage = [
+    0.3, // Step 1
+    0.6, // Step 2
+    1.3, // Step 3
+    2.8, // Step 4
+    5.8, // Step 5
+    12, // Step 6
+    25, // Step 7
+    52.19999, // Step 8
+];
 
 const _9stepsPercentageNoProfitOnLast = [
     0.15, // Step 1
@@ -21,7 +33,13 @@ const _9stepsPercentageNoProfitOnLast = [
     51.2, // Step 9
 ];
 
-const stepPercentage = _9stepsPercentageNoProfitOnLast;
+const stepPercentageMappings = {
+    7: _7stepsPercentage,
+    8: _8stepsPercentage,
+    9: _9stepsPercentageNoProfitOnLast
+}
+
+const stepPercentage = stepPercentageMappings[constants.STEPS_TO_FOLLOW];
 
 exports.getStepAmount = (requiredStep, balance) => {
     let stepTotal = 0,

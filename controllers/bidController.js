@@ -5,7 +5,8 @@ const authService = require('../services/authService'),
 // Models
 const User = require('../models/User'),
     BidType = require('../models/BidType'),
-    Bid = require('../models/Bid');
+    Bid = require('../models/Bid'),
+    constants = require('../config/constants');
 
 let bidTypes = null;
 
@@ -132,11 +133,11 @@ exports.initiate = async (request, response, next) => {
                 }
 
                 let nextStepNumber = 1;
-                if (!lastBidWon && !lastBid.transaction_closed) {
+                if (!lastBidWon && !lastBid?.transaction_closed) {
                     // Continuing to next step
                     nextStepNumber = lastBid?.step || 0;
                     nextStepNumber = parseInt(nextStepNumber) + 1;
-                    if (nextStepNumber > 9) {
+                    if (nextStepNumber > constants.STEPS_TO_FOLLOW) {
                         return {error: "Lost! Cannot play further"};
                     }
                 }
